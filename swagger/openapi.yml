@@ -1,0 +1,218 @@
+openapi: 3.0.0
+info:
+  title: Task Manager API
+  version: 1.0.0
+  description: |
+    A simple in-memory Task Manager.  
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+paths:
+  /tasks:
+    get:
+      summary: List all tasks
+      description: |
+        Retrieve all tasks, sorted by createdAt ascending.  
+        Tasks without a createdAt come last.
+      parameters:
+        - in: query
+          name: completed
+          schema:
+            type: boolean
+          description: Filter tasks by completion status
+      responses:
+        '200':
+          description: A JSON array of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+    post:
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskInput'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /tasks/{id}:
+    get:
+      summary: Get a task by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Numeric ID of the task
+      responses:
+        '200':
+          description: A single task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    put:
+      summary: Update a task by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Numeric ID of the task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskInput'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      summary: Delete a task by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Numeric ID of the task
+      responses:
+        '200':
+          description: Task deleted successfully
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /tasks/priority/{level}:
+    get:
+      summary: List tasks by priority
+      parameters:
+        - in: path
+          name: level
+          required: true
+          schema:
+            type: string
+            enum: [low, medium, high]
+          description: Priority level to filter by
+      responses:
+        '200':
+          description: A JSON array of tasks with the given priority, sorted by createdAt ascending
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '400':
+          description: Invalid priority level
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Task:
+      type: object
+      required:
+        - id
+        - title
+        - description
+        - completed
+        - priority
+        - createdAt
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: Set up environment
+        description:
+          type: string
+          example: Install Node.js, npm, and git
+        completed:
+          type: boolean
+          example: false
+        priority:
+          type: string
+          enum: [low, medium, high]
+          example: medium
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-05-03T12:00:00.000Z
+
+    TaskInput:
+      type: object
+      required:
+        - title
+        - description
+        - completed
+        - priority
+      properties:
+        title:
+          type: string
+          example: Write README
+        description:
+          type: string
+          example: Draft the README file for the project
+        completed:
+          type: boolean
+          example: false
+        priority:
+          type: string
+          enum: [low, medium, high]
+          example: low
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Task not found
