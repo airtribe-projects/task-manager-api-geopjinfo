@@ -18,6 +18,30 @@ Legacy data without `priority` or `createdAt` is gently handled:
 
 - Missing **priority** defaults to `low`  
 - Missing or invalid **createdAt** is treated as “no date” (and sorts last)
+  
+## Project Structure
+
+```cmd
+./task-manager-api-geopjinfo
+├── task.json                # Seed data for in-memory store
+├── swagger
+   └── openapi.yml           # Swagger/OpenAPI spec
+├── app.js                   # Express app + server
+├── ReadMe.md                # Project overview & instructions
+├── package.json             # NPM scripts & dependencies
+├── .env                     # Environment variables (PORT, ENABLE_TASKS_WRITE)
+├── src
+│   ├── constants
+│   │   └── priority.enum.js  # Priority enum values
+│   ├── data
+│   │   └── task.data.js      # In-memory data layer
+│   ├── controllers           # Business logic & validation
+│   │   └── tasks.controller.js 
+│   └── routes
+│       └── tasks.routes.js    # Express routes
+└── test
+    └── server.test.js         # Tap/Supertest API tests
+```
 
 ## Setup
 
