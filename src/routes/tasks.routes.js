@@ -2,7 +2,10 @@ const { Router } = require("express");
 const taskController = require("../controllers/tasks.controller");
 const router = Router();
 
-router.route("/").get(taskController.list).post(taskController.create);
+router
+  .route("/")
+  .get(taskController.list)
+  .post(taskController.create);
 
 router.get("/priority/:level", taskController.getByPriority);
 

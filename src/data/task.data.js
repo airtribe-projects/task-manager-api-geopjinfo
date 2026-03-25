@@ -7,6 +7,7 @@ const file = path.join(__dirname, "../../task.json");
 console.log("Loading tasks");
 if (!fs.existsSync(file)) {
   console.log("Creating empty task.json file");
+  fs.writeFileSync(file, JSON.stringify({ tasks: [] }, null, 2));
 }
 
 let tasks = [];
@@ -35,7 +36,11 @@ try {
 
 function _write() {
   if (process.env.ENABLE_TASKS_PERSISTENCE === "false") return;
-  fs.writeFileSync(file, JSON.stringify({ tasks }, null, 2));
+  try {
+    fs.writeFileSync(file, JSON.stringify({ tasks }, null, 2));
+  } catch (err) {
+    throw new Error(`Failed to persist tasks: ${err.message}`);
+  }
 }
 
 exports.getAll = () => tasks;
@@ -68,22 +73,26 @@ exports.create = ({
   return newTask;
 };
 
-exports.update = (id, { title, description, completed,priority  }) => {
+exports.update = (id, { title, description, completed, priority }) => {
   const idx = tasks.findIndex((t) => t.id === id);
   if (idx === -1) return null;
   const nowIso = () => new Date().toISOString();
   const createdAt = tasks[idx].createdAt ?? nowIso();
-  priority = priority || tasks[idx].priority; 
-  priority = priority ?? PRIORITY_LIST[0];
-  if (!PRIORITY_LIST.includes(priority)) {
-    throw new Error(`Invalid priority "${priority}"`);
+  const nextPriority = priority ?? tasks[idx].priority ?? PRIORITY_LIST[0];
+  if (!PRIORITY_LIST.includes(nextPriority)) {
+    throw new Error(`Invalid priority "${nextPriority}"`);
   }
-  tasks[idx] = { id, title, description, completed, priority, createdAt };
+  tasks[idx] = {
+    id,
+    title,
+    description,
+    completed,
+    priority: nextPriority,
+    createdAt,
+  };
   _write();
   return tasks[idx];
 };
-
-
 
 exports.remove = (id) => {
   const idx = tasks.findIndex((t) => t.id === id);
