@@ -3,7 +3,18 @@ const path = require("path");
 
 const { PRIORITIES, PRIORITY_LIST } = require("../constants/priority.enum");
 
-const file = path.join(__dirname, "../../task.json");
+const file = path.resolve(__dirname, "../../task.json");
+const allowedTaskFields = new Set(["title", "description", "completed", "priority"]);
+const nowIso = () => new Date().toISOString();
+
+function validateAcceptedFields(payload) {
+  const keys = Object.keys(payload ?? {});
+  const invalid = keys.filter((key) => !allowedTaskFields.has(key));
+  if (invalid.length > 0) {
+    throw new Error(`Unexpected fields: ${invalid.join(", ")}`);
+  }
+}
+
 console.log("Loading tasks");
 if (!fs.existsSync(file)) {
   console.log("Creating empty task.json file");
@@ -34,9 +45,10 @@ try {
   tasks = [];
 }
 
-function _write() {
+function writeTasksToFile() {
   if (process.env.ENABLE_TASKS_PERSISTENCE === "false") return;
   try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify({ tasks }, null, 2));
   } catch (err) {
     throw new Error(`Failed to persist tasks: ${err.message}`);
@@ -55,7 +67,7 @@ exports.create = ({
   completed,
   priority = PRIORITIES.LOW,
 }) => {
-  const nowIso = () => new Date().toISOString();
+  validateAcceptedFields({ title, description, completed, priority });
   if (!PRIORITY_LIST.includes(priority)) {
     throw new Error(`Invalid priority "${priority}"`);
   }
@@ -69,14 +81,14 @@ exports.create = ({
     createdAt: nowIso(),
   };
   tasks.push(newTask);
-  _write();
+  writeTasksToFile();
   return newTask;
 };
 
 exports.update = (id, { title, description, completed, priority }) => {
+  validateAcceptedFields({ title, description, completed, priority });
   const idx = tasks.findIndex((t) => t.id === id);
   if (idx === -1) return null;
-  const nowIso = () => new Date().toISOString();
   const createdAt = tasks[idx].createdAt ?? nowIso();
   const nextPriority = priority ?? tasks[idx].priority ?? PRIORITY_LIST[0];
   if (!PRIORITY_LIST.includes(nextPriority)) {
@@ -90,7 +102,7 @@ exports.update = (id, { title, description, completed, priority }) => {
     priority: nextPriority,
     createdAt,
   };
-  _write();
+  writeTasksToFile();
   return tasks[idx];
 };
 
@@ -98,6 +110,6 @@ exports.remove = (id) => {
   const idx = tasks.findIndex((t) => t.id === id);
   if (idx === -1) return false;
   tasks.splice(idx, 1);
-  _write();
+  writeTasksToFile();
   return true;
 };

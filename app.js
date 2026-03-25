@@ -11,16 +11,21 @@ const parsedPort = Number.parseInt(process.env.PORT ?? "", 10);
 const port = Number.isNaN(parsedPort) ? 3000 : parsedPort;
 
 const swaggerPath = path.join(__dirname, "./swagger/openapi.yml");
+const hasSwaggerFile = fs.existsSync(swaggerPath);
 let swaggerDocument = {
   openapi: "3.0.0",
   info: { title: "Task Manager API", version: "1.0.0" },
   paths: {},
 };
-try {
-  const swaggerText = fs.readFileSync(swaggerPath, "utf8");
-  swaggerDocument = YAML.parse(swaggerText);
-} catch (err) {
-  console.error("Failed to parse OpenAPI spec:", err.message);
+if (hasSwaggerFile) {
+  try {
+    const swaggerText = fs.readFileSync(swaggerPath, "utf8");
+    swaggerDocument = YAML.parse(swaggerText);
+  } catch (err) {
+    console.error("Failed to parse OpenAPI spec:", err.message);
+  }
+} else {
+  console.error("OpenAPI spec file not found:", swaggerPath);
 }
 
 app.use(express.json());
@@ -33,7 +38,10 @@ app.use(
 );
 
 app.get("/", (req, res) => {
-  res.redirect("/api-docs/");
+  if (hasSwaggerFile) {
+    return res.redirect("/api-docs/");
+  }
+  return res.json({ status: "ok", docs: "Swagger spec missing" });
 });
 
 app.use("/tasks", tasksRouter);
@@ -47,7 +55,7 @@ app.listen(port, (err) => {
     console.error("Something bad happened", err);
     return;
   }
-  console.log(`✅ Server is listening on ${port}`);
+  console.log(`Server is listening on ${port}`);
 });
 
 module.exports = app;

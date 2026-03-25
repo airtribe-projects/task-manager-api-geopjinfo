@@ -83,6 +83,12 @@ Legacy data without `priority` or `createdAt` is gently handled:
 Once the server is running, view full API specification via Swagger UI:
 
 ```cmd 
+http://localhost:3000/
+```
+
+Direct docs URL:
+
+```cmd
 http://localhost:3000/api-docs
 ```
 

@@ -48,7 +48,12 @@ exports.get = (req, res) => {
 };
 
 exports.create = (req, res) => {
-  const { title, description, completed, priority = PRIORITIES.LOW } = req.body;
+  const {
+    title,
+    description,
+    completed = null,
+    priority = PRIORITIES.LOW,
+  } = req.body;
   const validationError = validateTaskBody(
     { title, description, completed, priority },
     true
@@ -69,7 +74,12 @@ exports.create = (req, res) => {
 
 exports.update = (req, res) => {
   const id = +req.params.id;
-  const { title, description, completed, priority } = req.body;
+  const {
+    title,
+    description,
+    completed = null,
+    priority,
+  } = req.body;
   const validationError = validateTaskBody(
     { title, description, completed, priority },
     false
@@ -82,7 +92,7 @@ exports.update = (req, res) => {
       title,
       description,
       completed,
-      priority,
+      priority
     });
     if (!updated) return res.status(404).json({ error: "Task not found" });
     res.json(updated);
