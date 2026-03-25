@@ -29,7 +29,7 @@ Legacy data without `priority` or `createdAt` is gently handled:
 ├── app.js                   # Express app + server
 ├── ReadMe.md                # Project overview & instructions
 ├── package.json             # NPM scripts & dependencies
-├── .env                     # Environment variables (PORT, ENABLE_TASKS_WRITE)
+├── .env                     # Environment variables (PORT, ENABLE_TASKS_PERSISTENCE)
 ├── src
 │   ├── constants
 │   │   └── priority.enum.js  # Priority enum values
@@ -62,7 +62,7 @@ Legacy data without `priority` or `createdAt` is gently handled:
 
    ```
    PORT=3000
-   ENABLE_TASKS_WRITE=true   # set to false to disable writing back to task.json
+   ENABLE_TASKS_PERSISTENCE=true   # set to false to disable writing back to task.json
    ```
 4. **Seed data**
    The root `task.json` file holds initial tasks.

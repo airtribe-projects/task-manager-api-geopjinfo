@@ -4,7 +4,7 @@ const data = require("../data/task.data");
 exports.list = (req, res) => {
   let dataList = data.getAll();
   if (!dataList || dataList.length === 0) {
-    return res.status(204).json({ error: "No tasks found" });
+    return res.status(204).send();
   }
 
   if (req.query.completed != null) {
@@ -47,22 +47,19 @@ exports.update = (req, res) => {
   if (
     typeof title !== "string" ||
     typeof description !== "string" ||
-    typeof completed !== "boolean"
+    typeof completed !== "boolean" ||
+    (priority !== undefined && !PRIORITY_LIST.includes(priority))
   ) {
     return res.status(400).json({ error: "Invalid Request Body" });
   }
-  try {
-    const updated = data.update(id, {
-      title,
-      description,
-      completed,
-      priority,
-    });
-    if (!updated) return res.status(404).json({ error: "Invalid Request" });
-    res.json(updated);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
+  const updated = data.update(id, {
+    title,
+    description,
+    completed,
+    priority,
+  });
+  if (!updated) return res.status(404).json({ error: "Invalid Request" });
+  res.json(updated);
 };
 
 exports.getByPriority = (req, res) => {
@@ -80,7 +77,7 @@ exports.getByPriority = (req, res) => {
     });
 
   if (!list || list.length === 0) {
-    return res.status(204).json({ error: "No tasks found" });
+    return res.status(204).send();
   }
   res.json(list);
 };

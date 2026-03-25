@@ -194,7 +194,6 @@ components:
         - title
         - description
         - completed
-        - priority
       properties:
         title:
           type: string
@@ -208,6 +207,7 @@ components:
         priority:
           type: string
           enum: [low, medium, high]
+          default: low
           example: low
 
     Error:

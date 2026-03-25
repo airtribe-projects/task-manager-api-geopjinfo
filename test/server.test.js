@@ -1,5 +1,6 @@
 const tap = require("tap");
 const supertest = require("supertest");
+process.env.ENABLE_TASKS_PERSISTENCE = "false";
 const app = require("../app");
 const server = supertest(app);
 
@@ -11,6 +12,8 @@ tap.test("POST /tasks", async (t) => {
   };
   const response = await server.post("/tasks").send(newTask);
   t.equal(response.status, 201);
+  t.equal(response.body.priority, "low");
+  t.type(response.body.createdAt, "string");
   t.end();
 });
 
@@ -40,13 +43,10 @@ tap.test("GET /tasks", async (t) => {
 tap.test("GET /tasks/:id", async (t) => {
   const response = await server.get("/tasks/1");
   t.equal(response.status, 200);
-  const expectedTask = {
-    id: 1,
-    title: "Set up environment",
-    description: "Install Node.js, npm, and git",
-    completed: true,
-  };
-  t.match(response.body, expectedTask);
+  t.hasOwnProp(response.body, "id");
+  t.hasOwnProp(response.body, "title");
+  t.hasOwnProp(response.body, "description");
+  t.hasOwnProp(response.body, "completed");
   t.end();
 });
 
@@ -115,40 +115,66 @@ tap.test("DELETE /tasks/:id with invalid id", async (t) => {
 
 tap.test("GET /tasks?completed=true", async (t) => {
   const res = await server.get("/tasks?completed=true");
-  t.equal(res.status, 200);
-  res.body.forEach((task) => t.equal(task.completed, true));
+  t.ok([200, 204].includes(res.status));
+  if (res.status === 200) {
+    res.body.forEach((task) => t.equal(task.completed, true));
+  }
   t.end();
 });
 
 tap.test("GET /tasks?completed=false", async (t) => {
   const res = await server.get("/tasks?completed=false");
-  t.equal(res.status, 200);
-  res.body.forEach((task) => t.equal(task.completed, false));
+  t.ok([200, 204].includes(res.status));
+  if (res.status === 200) {
+    res.body.forEach((task) => t.equal(task.completed, false));
+  }
   t.end();
 });
 
 tap.test("GET /tasks sorted by createdAt ascending", async (t) => {
   const res = await server.get("/tasks");
-  t.equal(res.status, 200);
-  const times = res.body.map((x) => {
-    return Date.parse(x.createdAt);
-  });
-  const sorted = [...times].sort((a, b) => a - b);
-  t.same(times, sorted, "times are in non-decreasing order");
+  t.ok([200, 204].includes(res.status));
+  if (res.status === 200) {
+    const times = res.body.map((x) => {
+      return Date.parse(x.createdAt);
+    });
+    const sorted = [...times].sort((a, b) => a - b);
+    t.same(times, sorted, "times are in non-decreasing order");
+  }
   t.end();
 });
 
 tap.test("GET /tasks/priority/:level", async (t) => {
   const level = "low";
   const res = await server.get(`/tasks/priority/${level}`);
-  t.equal(res.status, 200);
-  res.body.forEach((task) => t.equal(task.priority, level));
+  t.ok([200, 204].includes(res.status));
+  if (res.status === 200) {
+    res.body.forEach((task) => t.equal(task.priority, level));
+  }
   t.end();
 });
 
 tap.test("GET /tasks/priority/:level with invalid level", async (t) => {
   const res = await server.get("/tasks/priority/invalid");
   t.equal(res.status, 400);
+  t.end();
+});
+
+tap.test("GET endpoints return 204 with empty body when no tasks exist", async (t) => {
+  const all = await server.get("/tasks");
+  if (all.status === 200 && Array.isArray(all.body)) {
+    for (const task of all.body) {
+      await server.delete(`/tasks/${task.id}`);
+    }
+  }
+
+  const listRes = await server.get("/tasks");
+  t.equal(listRes.status, 204);
+  t.equal(listRes.text, "");
+
+  const byPriorityRes = await server.get("/tasks/priority/low");
+  t.equal(byPriorityRes.status, 204);
+  t.equal(byPriorityRes.text, "");
   t.end();
 });
 

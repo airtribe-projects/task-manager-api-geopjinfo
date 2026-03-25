@@ -12,7 +12,8 @@ if (!fs.existsSync(file)) {
 let tasks = [];
 try {
   const raw = fs.readFileSync(file, "utf8");
-  tasks = JSON.parse(raw).tasks;
+  const parsed = JSON.parse(raw);
+  tasks = Array.isArray(parsed) ? parsed : parsed.tasks;
   if (!Array.isArray(tasks)) {
     throw new Error(`Should be an array, but got ${typeof tasks}.`);
   }
@@ -34,7 +35,7 @@ try {
 
 function _write() {
   if (process.env.ENABLE_TASKS_PERSISTENCE === "false") return;
-  fs.writeFileSync(file, JSON.stringify(tasks, null, 2));
+  fs.writeFileSync(file, JSON.stringify({ tasks }, null, 2));
 }
 
 exports.getAll = () => tasks;
