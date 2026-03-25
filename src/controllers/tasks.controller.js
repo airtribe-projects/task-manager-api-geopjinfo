@@ -31,7 +31,9 @@ exports.create = (req, res) => {
   const { title, description, completed, priority = PRIORITIES.LOW } = req.body;
   if (
     typeof title !== "string" ||
+    title.trim().length === 0 ||
     typeof description !== "string" ||
+    description.trim().length === 0 ||
     typeof completed !== "boolean" ||
     !PRIORITY_LIST.includes(priority)
   ) {
@@ -46,7 +48,9 @@ exports.update = (req, res) => {
   const { title, description, completed, priority } = req.body;
   if (
     typeof title !== "string" ||
+    title.trim().length === 0 ||
     typeof description !== "string" ||
+    description.trim().length === 0 ||
     typeof completed !== "boolean" ||
     (priority !== undefined && !PRIORITY_LIST.includes(priority))
   ) {

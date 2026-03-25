@@ -26,6 +26,17 @@ tap.test("POST /tasks with invalid data", async (t) => {
   t.end();
 });
 
+tap.test("POST /tasks with empty title/description", async (t) => {
+  const newTask = {
+    title: "   ",
+    description: "",
+    completed: false,
+  };
+  const response = await server.post("/tasks").send(newTask);
+  t.equal(response.status, 400);
+  t.end();
+});
+
 tap.test("GET /tasks", async (t) => {
   const response = await server.get("/tasks");
   t.equal(response.status, 200);
@@ -83,6 +94,17 @@ tap.test("PUT /tasks/:id with invalid data", async (t) => {
     title: "Updated Task",
     description: "Updated Task Description",
     completed: "true",
+  };
+  const response = await server.put("/tasks/1").send(updatedTask);
+  t.equal(response.status, 400);
+  t.end();
+});
+
+tap.test("PUT /tasks/:id with empty title/description", async (t) => {
+  const updatedTask = {
+    title: "",
+    description: "   ",
+    completed: true,
   };
   const response = await server.put("/tasks/1").send(updatedTask);
   t.equal(response.status, 400);

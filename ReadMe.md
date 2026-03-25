@@ -27,7 +27,7 @@ Legacy data without `priority` or `createdAt` is gently handled:
 ├── swagger
    └── openapi.yml           # Swagger/OpenAPI spec
 ├── app.js                   # Express app + server
-├── ReadMe.md                # Project overview & instructions
+├── README.md                # Project overview & instructions
 ├── package.json             # NPM scripts & dependencies
 ├── .env                     # Environment variables (PORT, ENABLE_TASKS_PERSISTENCE)
 ├── src
